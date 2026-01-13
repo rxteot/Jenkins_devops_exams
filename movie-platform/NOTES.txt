@@ -1,0 +1,81 @@
+Thank you for installing the Movie Platform Helm chart.
+
+This release deploys the complete microservices stack:
+- movie_service (FastAPI)
+- cast_service (FastAPI)
+- movie_db (PostgreSQL)
+- cast_db (PostgreSQL)
+- nginx reverse proxy
+
+------------------------------------------------------------
+📌 Release Information
+------------------------------------------------------------
+Release Name: {{ .Release.Name }}
+Namespace:    {{ .Release.Namespace }}
+Chart:        {{ .Chart.Name }}-{{ .Chart.Version }}
+
+To verify that all pods are running:
+
+  kubectl get pods -n {{ .Release.Namespace }}
+
+To check service endpoints:
+
+  kubectl get svc -n {{ .Release.Namespace }}
+
+------------------------------------------------------------
+🌐 Accessing the Application
+------------------------------------------------------------
+
+The nginx service is exposed internally on port 8080.
+
+If using NodePort (default):
+
+  NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[0].address}')
+  echo "Open: http://$NODE_IP:30080"
+
+If running on k3s locally:
+
+  echo "Open: http://localhost:30080"
+
+------------------------------------------------------------
+🛠 Troubleshooting
+------------------------------------------------------------
+
+Check logs for any service:
+
+  kubectl logs -n {{ .Release.Namespace }} <pod-name>
+
+Check database pods:
+
+  kubectl get pods -l app=movie-db -n {{ .Release.Namespace }}
+  kubectl get pods -l app=cast-db  -n {{ .Release.Namespace }}
+
+Describe a failing pod:
+
+  kubectl describe pod <pod-name> -n {{ .Release.Namespace }}
+
+------------------------------------------------------------
+🧹 Uninstalling the Release
+------------------------------------------------------------
+
+To remove all resources created by this chart:
+
+  helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+PersistentVolumeClaims (PVCs) may remain for safety.  
+To delete them manually:
+
+  kubectl delete pvc -n {{ .Release.Namespace }} --all
+
+------------------------------------------------------------
+📘 Notes
+------------------------------------------------------------
+
+- Each environment (dev, qa, staging, prod) uses its own values file.
+- Image tags are injected dynamically by the CI/CD pipeline.
+- Database credentials and URIs are defined in values files per environment.
+- Nginx routes:
+    /movies/ → movie_service
+    /casts/  → cast_service
+
+Thank you for using the Movie Platform chart.

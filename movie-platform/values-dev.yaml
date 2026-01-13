@@ -1,0 +1,43 @@
+movie_service:
+  replicas: 1
+  image:
+    repository: rxteot/movie-service
+    tag: dev
+  env:
+    DATABASE_URI: "postgresql://movie_db_username:movie_db_password@movie-db/movie_db_dev"
+    CAST_SERVICE_HOST_URL: "http://cast-service:8000/api/v1/casts/"
+
+cast_service:
+  replicas: 1
+  image:
+    repository: rxteot/cast-service
+    tag: dev
+  env:
+    DATABASE_URI: "postgresql://cast_db_username:cast_db_password@cast-db/cast_db_dev"
+
+movie_db:
+  storage: 1Gi
+  env:
+    POSTGRES_USER: movie_db_username
+    POSTGRES_PASSWORD: movie_db_password
+    POSTGRES_DB: movie_db_dev
+
+cast_db:
+  storage: 1Gi
+  env:
+    POSTGRES_USER: cast_db_username
+    POSTGRES_PASSWORD: cast_db_password
+    POSTGRES_DB: cast_db_dev
+
+nginx:
+  replicas: 1
+  config: |
+    server {
+      listen 8080;
+      location /movies/ {
+        proxy_pass http://movie-service:8000/;
+      }
+      location /casts/ {
+        proxy_pass http://cast-service:8000/;
+      }
+    }

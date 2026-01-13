@@ -1,0 +1,10 @@
+apiVersion: v2
+name: movie-platform
+description: A multi-service movie & cast microservices platform deployed on Kubernetes using Helm.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+maintainers:
+  - name: Eric Tabot
+    email: etabot@wgu.edu

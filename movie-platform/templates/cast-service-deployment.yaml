@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "movie-platform.fullname" . }}-cast-service
+  labels:
+    app: cast-service
+spec:
+  replicas: {{ .Values.cast_service.replicas }}
+  selector:
+    matchLabels:
+      app: cast-service
+  template:
+    metadata:
+      labels:
+        app: cast-service
+    spec:
+      containers:
+        - name: cast-service
+          image: "{{ .Values.cast_service.image.repository }}:{{ .Values.cast_service.image.tag }}"
+          command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URI
+              value: "{{ .Values.cast_service.env.DATABASE_URI }}"
+            - name: CAST_SERVICE_HOST_URL
+              value: "{{ .Values.cast_service.env.CAST_SERVICE_HOST_URL }}"
+
