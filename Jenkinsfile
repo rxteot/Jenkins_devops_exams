@@ -2,10 +2,16 @@ pipeline {
     agent any
 
     environment {
+        // Credentials
         DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
         GITHUB_CREDENTIALS    = 'github-creds'
         KUBECONFIG_CRED       = 'kubeconfig'
 
+        // Slack
+        SLACK_CHANNEL = '#deployment'
+        SLACK_CREDENTIAL = 'slack-token'   // Slack Bot/User OAuth Token stored in Jenkins
+
+        // Images
         MOVIE_IMAGE = "rxteot/movie-service"
         CAST_IMAGE  = "rxteot/cast-service"
     }
@@ -62,10 +68,12 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy') {
             steps {
                 withCredentials([file(credentialsId: "${KUBECONFIG_CRED}", variable: 'KUBECONFIG')]) {
                     script {
+                        def helmFlags = "--atomic --timeout 5m0s"
+
                         if (BRANCH_NAME == "dev" || BRANCH_NAME == "main" || BRANCH_NAME.startsWith("feature/")) {
                             sh """
                               export KUBECONFIG=${KUBECONFIG}
@@ -73,7 +81,8 @@ pipeline {
                                 -n dev \
                                 -f movie-platform/values-dev.yaml \
                                 --set movie_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
-                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER}
+                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
+                                ${helmFlags}
                             """
                         }
 
@@ -84,7 +93,8 @@ pipeline {
                                 -n qa \
                                 -f movie-platform/values-qa.yaml \
                                 --set movie_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
-                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER}
+                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
+                                ${helmFlags}
                             """
                         }
 
@@ -95,7 +105,8 @@ pipeline {
                                 -n staging \
                                 -f movie-platform/values-staging.yaml \
                                 --set movie_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
-                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER}
+                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
+                                ${helmFlags}
                             """
                         }
 
@@ -109,7 +120,8 @@ pipeline {
                                 -n prod \
                                 -f movie-platform/values-prod.yaml \
                                 --set movie_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
-                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER}
+                                --set cast_service.image.tag=${BRANCH_NAME}-${BUILD_NUMBER} \
+                                ${helmFlags}
                             """
                         }
                     }
@@ -119,7 +131,26 @@ pipeline {
     }
 
     post {
+        success {
+            slackSend(
+                channel: SLACK_CHANNEL,
+                tokenCredentialId: SLACK_CREDENTIAL,
+                message: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER} deployed to ${BRANCH_NAME}"
+            )
+        }
+        failure {
+            slackSend(
+                channel: SLACK_CHANNEL,
+                tokenCredentialId: SLACK_CREDENTIAL,
+                message: "FAILED: ${JOB_NAME} #${BUILD_NUMBER} on ${BRANCH_NAME}. Helm auto‑rollback executed."
+            )
+        }
         always {
+             slackSend(
+                channel: SLACK_CHANNEL,
+                tokenCredentialId: SLACK_CREDENTIAL,
+                message: "Pipeline completed with status: ${currentBuild.currentResult}"
+            )
             echo "Pipeline completed with status: ${currentBuild.currentResult}"
         }
     }
