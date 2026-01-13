@@ -18,7 +18,7 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: "*/${BRANCH_NAME}"]],
                     userRemoteConfigs: [[
-                        url: 'https://github.com/rxteot/your-repo.git',
+                        url: 'https://github.com/rxteot/Jenkins_devops_exams.git',
                         credentialsId: "${GITHUB_CREDENTIALS}"
                     ]]
                 ])
