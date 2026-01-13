@@ -130,28 +130,29 @@ pipeline {
         }
     }
 
-    post {
+     post {
         success {
             slackSend(
-                channel: SLACK_CHANNEL,
-                tokenCredentialId: SLACK_CREDENTIAL,
-                message: "SUCCESS: ${JOB_NAME} #${BUILD_NUMBER} deployed to ${BRANCH_NAME}"
+                channel: '#deployment',
+                tokenCredentialId: 'slack-token',
+                message: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER} deployed from branch ${env.BRANCH_NAME}"
             )
         }
         failure {
             slackSend(
-                channel: SLACK_CHANNEL,
-                tokenCredentialId: SLACK_CREDENTIAL,
-                message: "FAILED: ${JOB_NAME} #${BUILD_NUMBER} on ${BRANCH_NAME}. Helm auto‑rollback executed."
+                channel: '#deployment',
+                tokenCredentialId: 'slack-token',
+                message: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER} on branch ${env.BRANCH_NAME}"
             )
         }
         always {
              slackSend(
-                channel: SLACK_CHANNEL,
+                channel: '#deployment',
                 tokenCredentialId: SLACK_CREDENTIAL,
                 message: "Pipeline completed with status: ${currentBuild.currentResult}"
             )
             echo "Pipeline completed with status: ${currentBuild.currentResult}"
         }
     }
+
 }
