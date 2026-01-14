@@ -13,6 +13,11 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir()
+            }
+        }
 
         stage('Build Started') {
             steps {
