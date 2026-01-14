@@ -13,6 +13,15 @@ pipeline {
     }
 
     stages {
+        stage('Debug Working Directory') {
+            steps {
+                sh 'echo "PWD:"'
+                sh 'pwd'
+                sh 'echo "Top-level files:"'
+                sh 'ls -R .'
+            }
+        }
+
         stage('Clean Workspace') {
             steps {
                 deleteDir()
