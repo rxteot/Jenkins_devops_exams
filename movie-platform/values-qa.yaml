@@ -28,7 +28,8 @@ cast_db:
     POSTGRES_USER: cast_db_username
     POSTGRES_PASSWORD: cast_db_password
     POSTGRES_DB: cast_db_qa
-
+tests:
+  enabled: false
 nginx:
   replicas: 1
   config: |
